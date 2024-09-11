@@ -18,27 +18,37 @@
                     var marker = this.el;
                     this.vid = document.querySelector(this.data.videoId);
 
-                    // ビデオがすでに読み込まれているかを確認
-                    if (this.vid.readyState >= 3) {
-                        marker.addEventListener('markerFound', () => {
-                            this.vid.play();
-                        });
-                    } else {
-                        this.vid.addEventListener('loadeddata', () => {
-                            marker.addEventListener('markerFound', () => {
-                                this.vid.play();
-                            });
+                    // すべてのビデオを停止する関数
+                    function stopAllVideos() {
+                        var videos = document.querySelectorAll('video');
+                        videos.forEach(function (video) {
+                            video.pause();
+                            video.currentTime = 0;
                         });
                     }
 
+                    // iPhoneとAndroidでビデオをミュート解除して再生する関数
+                    function unmuteAndPlay(video) {
+                        video.muted = false;
+                        video.play();
+                    }
+
+                    // マーカー検出時のイベントを設定
+                    this.vid.addEventListener('loadeddata', () => {
+                        marker.addEventListener('markerFound', () => {
+                            stopAllVideos(); // 他のビデオを停止
+                            unmuteAndPlay(this.vid); // このビデオをミュート解除して再生
+                        });
+                    });
+
+                    // マーカーが見失われた時にビデオを一時停止
                     marker.addEventListener('markerLost', () => {
                         this.vid.pause();
                     });
 
-                    // iPhoneで音声が再生されるようにする
+                    // iPhoneでもビデオを再生できるよう、タッチイベントを使用してミュート解除と再生を実行
                     window.addEventListener('click', () => {
-                        this.vid.muted = false;
-                        this.vid.play();
+                        unmuteAndPlay(this.vid); // iPhoneとAndroidの両方でビデオをミュート解除して再生
                     });
                 },
             });
