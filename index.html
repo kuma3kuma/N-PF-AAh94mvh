@@ -9,40 +9,51 @@
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-        <script>
-            AFRAME.registerComponent('videohandler', {
-                schema: {
-                    videoId: { type: 'string' }
-                },
-                init: function () {
-                    var marker = this.el;
-                    this.vid = document.querySelector(this.data.videoId);
+       <script>
+    AFRAME.registerComponent('videohandler', {
+        schema: {
+            videoId: { type: 'string' }
+        },
+        init: function () {
+            var marker = this.el;
+            this.vid = document.querySelector(this.data.videoId);
 
-                    // ビデオがすでに読み込まれているかを確認
-                    if (this.vid.readyState >= 3) {
-                        marker.addEventListener('markerFound', () => {
-                            this.vid.play();
-                        });
-                    } else {
-                        this.vid.addEventListener('loadeddata', () => {
-                            marker.addEventListener('markerFound', () => {
-                                this.vid.play();
-                            });
-                        });
-                    }
-
-                    marker.addEventListener('markerLost', () => {
-                        this.vid.pause();
-                    });
-
-                    // iPhoneで音声が再生されるようにする
-                    window.addEventListener('click', () => {
-                        this.vid.muted = false;
+            // ビデオがすでに読み込まれているか確認
+            if (this.vid.readyState >= 3) {
+                marker.addEventListener('markerFound', () => {
+                    this.stopAllVideos(); // 他のビデオを停止
+                    this.vid.play();
+                });
+            } else {
+                this.vid.addEventListener('loadeddata', () => {
+                    marker.addEventListener('markerFound', () => {
+                        this.stopAllVideos(); // 他のビデオを停止
                         this.vid.play();
                     });
-                },
+                });
+            }
+
+            marker.addEventListener('markerLost', () => {
+                this.vid.pause();
+                this.vid.currentTime = 0; // 再生位置をリセット
             });
-        </script>
+
+            // iPhoneでの再生をサポート
+            window.addEventListener('click', () => {
+                this.vid.muted = false;
+                this.vid.play();
+            });
+        },
+        // すべてのビデオを停止する関数
+        stopAllVideos: function () {
+            var videos = document.querySelectorAll('video');
+            videos.forEach(video => {
+                video.pause();
+                video.currentTime = 0;
+            });
+        }
+    });
+</script>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
