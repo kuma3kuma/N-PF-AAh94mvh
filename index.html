@@ -2,8 +2,8 @@
 <html>
     <head>
         <!--
-        A-FrameとAR.jsを使用したWebARの設定です。
-        ビデオアセットを順次読み込み、マーカーが検出されたときのみ再生します。
+        これは、A-FrameとAR.jsを使用したWebARの設定です。
+        ビデオアセットを順次読み込み、利用可能になり次第再生します。
         -->
         <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
@@ -18,27 +18,24 @@
                     var marker = this.el;
                     this.vid = document.querySelector(this.data.videoId);
 
-                    // すべてのビデオを停止する関数
-                    function stopAllVideos() {
-                        var videos = document.querySelectorAll('video');
-                        videos.forEach(function (video) {
-                            video.pause();
-                            video.currentTime = 0; // 再生位置をリセット
+                    // ビデオがすでに読み込まれているかを確認
+                    if (this.vid.readyState >= 3) {
+                        marker.addEventListener('markerFound', () => {
+                            this.vid.play();
+                        });
+                    } else {
+                        this.vid.addEventListener('loadeddata', () => {
+                            marker.addEventListener('markerFound', () => {
+                                this.vid.play();
+                            });
                         });
                     }
 
-                    // マーカーが見つかった時の処理
-                    marker.addEventListener('markerFound', () => {
-                        stopAllVideos(); // 他のビデオを停止
-                        this.vid.play(); // マーカーに関連付けられたビデオを再生
-                    });
-
-                    // マーカーが見失われた時にビデオを一時停止
                     marker.addEventListener('markerLost', () => {
                         this.vid.pause();
                     });
 
-                    // iPhoneで音声が再生されるようにクリックイベントでミュート解除
+                    // iPhoneで音声が再生されるようにする
                     window.addEventListener('click', () => {
                         this.vid.muted = false;
                         this.vid.play();
