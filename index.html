@@ -18,32 +18,66 @@
             var marker = this.el;
             this.vid = document.querySelector(this.data.videoId);
 
-            // ビデオがすでに読み込まれているか確認
-            if (this.vid.readyState >= 3) {
-                marker.addEventListener('markerFound', () => {
-                    this.stopAllVideos(); // 他のビデオを停止
-                    this.vid.play();
-                });
-            } else {
-                this.vid.addEventListener('loadeddata', () => {
-                    marker.addEventListener('markerFound', () => {
-                        this.stopAllVideos(); // 他のビデオを停止
-                        this.vid.play();
-                    });
-                });
+            // デバイス判別
+            var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            var isAndroid = /Android/i.test(navigator.userAgent);
+
+            if (isIOS) {
+                this.setupForIOS();
+            } else if (isAndroid) {
+                this.setupForAndroid();
             }
 
             marker.addEventListener('markerLost', () => {
                 this.vid.pause();
                 this.vid.currentTime = 0; // 再生位置をリセット
             });
+        },
 
-            // iPhoneでの再生をサポート
+        // iOS向けの処理
+        setupForIOS: function () {
+            var marker = this.el;
+
+            if (this.vid.readyState >= 3) {
+                marker.addEventListener('markerFound', () => {
+                    this.stopAllVideos();
+                    this.vid.play();
+                });
+            } else {
+                this.vid.addEventListener('loadeddata', () => {
+                    marker.addEventListener('markerFound', () => {
+                        this.stopAllVideos();
+                        this.vid.play();
+                    });
+                });
+            }
+
+            // iPhoneではクリックイベントで音声を許可
             window.addEventListener('click', () => {
                 this.vid.muted = false;
                 this.vid.play();
             });
         },
+
+        // Android向けの処理
+        setupForAndroid: function () {
+            var marker = this.el;
+
+            if (this.vid.readyState >= 3) {
+                marker.addEventListener('markerFound', () => {
+                    this.stopAllVideos();
+                    this.vid.play();
+                });
+            } else {
+                this.vid.addEventListener('loadeddata', () => {
+                    marker.addEventListener('markerFound', () => {
+                        this.stopAllVideos();
+                        this.vid.play();
+                    });
+                });
+            }
+        },
+
         // すべてのビデオを停止する関数
         stopAllVideos: function () {
             var videos = document.querySelectorAll('video');
@@ -54,6 +88,7 @@
         }
     });
 </script>
+
     </head>
 
     <body style="margin: 0; overflow: hidden;">
