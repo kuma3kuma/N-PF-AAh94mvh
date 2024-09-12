@@ -9,86 +9,40 @@
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-<script>
-    AFRAME.registerComponent('videohandler', {
-        schema: {
-            videoId: { type: 'string' }
-        },
-        init: function () {
-            var marker = this.el;
-            this.vid = document.querySelector(this.data.videoId);
+        <script>
+            AFRAME.registerComponent('videohandler', {
+                schema: {
+                    videoId: { type: 'string' }
+                },
+                init: function () {
+                    var marker = this.el;
+                    this.vid = document.querySelector(this.data.videoId);
 
-            // デバイス判別
-            var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            var isAndroid = /Android/i.test(navigator.userAgent);
+                    // ビデオがすでに読み込まれているかを確認
+                    if (this.vid.readyState >= 3) {
+                        marker.addEventListener('markerFound', () => {
+                            this.vid.play();
+                        });
+                    } else {
+                        this.vid.addEventListener('loadeddata', () => {
+                            marker.addEventListener('markerFound', () => {
+                                this.vid.play();
+                            });
+                        });
+                    }
 
-            if (isIOS) {
-                this.setupForIOS();
-            } else if (isAndroid) {
-                this.setupForAndroid();
-            }
+                    marker.addEventListener('markerLost', () => {
+                        this.vid.pause();
+                    });
 
-            marker.addEventListener('markerLost', () => {
-                this.vid.pause();
-                this.vid.currentTime = 0; // 再生位置をリセット
-            });
-        },
-
-        // iOS向けの処理
-        setupForIOS: function () {
-            var marker = this.el;
-
-            if (this.vid.readyState >= 3) {
-                marker.addEventListener('markerFound', () => {
-                    this.stopAllVideos();
-                    this.vid.play();
-                });
-            } else {
-                this.vid.addEventListener('loadeddata', () => {
-                    marker.addEventListener('markerFound', () => {
-                        this.stopAllVideos();
+                    // iPhoneで音声が再生されるようにする
+                    window.addEventListener('click', () => {
+                        this.vid.muted = false;
                         this.vid.play();
                     });
-                });
-            }
-
-            // iPhoneではクリックイベントで音声を許可
-            window.addEventListener('click', () => {
-                this.vid.muted = false;
-                this.vid.play();
+                },
             });
-        },
-
-        // Android向けの処理
-        setupForAndroid: function () {
-            var marker = this.el;
-
-            if (this.vid.readyState >= 3) {
-                marker.addEventListener('markerFound', () => {
-                    this.stopAllVideos();
-                    this.vid.play();
-                });
-            } else {
-                this.vid.addEventListener('loadeddata', () => {
-                    marker.addEventListener('markerFound', () => {
-                        this.stopAllVideos();
-                        this.vid.play();
-                    });
-                });
-            }
-        },
-
-        // すべてのビデオを停止する関数
-        stopAllVideos: function () {
-            var videos = document.querySelectorAll('video');
-            videos.forEach(video => {
-                video.pause();
-                video.currentTime = 0;
-            });
-        }
-    });
-</script>
-
+        </script>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
